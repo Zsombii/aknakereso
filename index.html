@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aknakereső</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #C0C0C0;
+            background: url(bg.jpg);
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+        }
+        .game-container {
+            display: inline-block;
+            background-color: #DCDCDC;
+            border: 3px solid #808080;
+            padding: 5px;
+            box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #C0C0C0;
+            padding: 5px;
+            border: 2px solid #808080;
+            box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
+        }
+        .counter, .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            background: black;
+            color: red;
+            padding: 5px;
+            width: 50px;
+            text-align: center;
+        }
+        .smiley {
+            width: 30px;
+            height: 30px;
+            background: none;
+            border: none;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        .board {
+            display: grid;
+            gap: 1px;
+            background-color: #808080;
+            border: 2px solid #808080;
+            margin-top: 5px;
+        }
+        .cell {
+            width: 25px;
+            height: 25px;
+            background-color: #DCDCDC;
+            border: 2px solid #808080;
+            box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cell.revealed {
+            background-color: #C0C0C0;
+            box-shadow: none;
+        }
+        .cell.mine {
+            background-color: rgb(255, 196, 0);
+        }
+        label{
+            font-size: 17px;
+        }
+        .dropdown-container {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+select {
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #808080;
+    background-color: #DCDCDC;
+    box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
+    cursor: pointer;
+    border-radius: 5px;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+select:hover {
+    background-color: #C0C0C0;
+}
+
+select:focus {
+    border-color: #555;
+    background-color: #B0B0B0;
+}
+
+.number-1 { color: blue; }
+.number-2 { color: green; }
+.number-3 { color: red; }
+.number-4 { color: navy; }
+.number-5 { color: brown; }
+.number-6 { color: teal; }
+.number-7 { color: black; }
+.number-8 { color: gray; }
+
+    </style>
+</head>
+<body>
+    <div class="dropdown-container" style="margin-bottom: 10px;">
+        <h1>Aknakereső</h1>
+        <label for="board-size">Tábla mérete:</label>
+        <select id="board-size">
+            <option value="6">6x6</option>
+            <option value="10" selected>10x10</option>
+            <option value="15">15x15</option>
+            <option value="17">17x17</option>
+            <option value="20">20x20</option>
+        </select>
+    </div>
+    <div class="game-container">
+        <div class="top-bar">
+            <div class="counter" id="mine-counter">015</div>
+            <button class="smiley" id="reset-button">😊</button>
+            <div class="timer" id="timer">000</div>
+        </div>
+        <div id="board" class="board"></div>
+    </div>
+    
+    <script>
+        let size = 10; // Alapértelmezett méret
+        let mines = 15; // Alapértelmezett bányák száma
+        let board = [];
+        let timer = 0;
+        let interval;
+        let remainingFlags = mines;
+        let gameOver = false;
+        let firstClick = true;
+
+        function setMines() {
+            // A bányák számának beállítása a tábla mérete alapján
+            mines = Math.floor(size * size * 0.15); // 15% a bányák aránya a mezők számához képest
+            remainingFlags = mines; // Frissítjük a maradék zászlók számát
+        }
+
+        function startGame() {
+            clearInterval(interval);
+            timer = 0;
+            gameOver = false;
+            firstClick = true;
+            setMines(); // Beállítjuk a bányák számát
+            document.getElementById("timer").textContent = "000";
+            document.getElementById("mine-counter").textContent = remainingFlags.toString().padStart(3, '0');
+            document.getElementById("reset-button").textContent = "😊";
+
+            const boardElement = document.getElementById("board");
+            boardElement.style.gridTemplateColumns = `repeat(${size}, 25px)`;
+            boardElement.style.gridTemplateRows = `repeat(${size}, 25px)`;
+            boardElement.innerHTML = "";
+
+            board = Array.from({ length: size }, () => Array(size).fill(0));
+            renderBoard();
+        }
+
+        function placeMines(excludedX, excludedY) {
+            let placed = 0;
+            while (placed < mines) {
+                let x = Math.floor(Math.random() * size);
+                let y = Math.floor(Math.random() * size);
+                if ((x === excludedX && y === excludedY) || board[x][y] === "M") {
+                    continue;
+                }
+                board[x][y] = "M";
+                placed++;
+            }
+        }
+
+        function calculateNumbers() {
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    if (board[x][y] === "M") continue;
+                    let count = 0;
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            let nx = x + dx, ny = y + dy;
+                            if (nx >= 0 && ny >= 0 && nx < size && ny < size && board[nx][ny] === "M") {
+                                count++;
+                            }
+                        }
+                    }
+                    board[x][y] = count;
+                }
+            }
+        }
+
+        function renderBoard() {
+            const boardElement = document.getElementById("board");
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    let cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.addEventListener("click", revealCell);
+                    cell.addEventListener("contextmenu", toggleFlag);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function checkWin() {
+            let unrevealedCells = document.querySelectorAll(".cell:not(.revealed)").length;
+            if (unrevealedCells === mines) {
+                clearInterval(interval);
+                gameOver = true;
+                document.getElementById("reset-button").textContent = "😎";
+                alert(`Gratulálok, nyertél! 🎉 Idő: ${timer} másodperc`);
+            }
+        }
+
+        function revealCell(event) {
+    if (gameOver) return;
+
+    let x = parseInt(event.target.dataset.x);
+    let y = parseInt(event.target.dataset.y);
+    let cell = event.target;
+
+    if (firstClick) {
+        board = Array.from({ length: size }, () => Array(size).fill(0));
+        placeMines(x, y);
+        calculateNumbers();
+        firstClick = false;
+        startTimer();
+    }
+
+    if (cell.classList.contains("revealed") || cell.classList.contains("flagged")) return;
+
+    cell.classList.add("revealed");
+
+    if (board[x][y] === "M") {
+        cell.classList.add("mine");
+        revealAllMines();
+        gameOver = true;
+        clearInterval(interval);
+        document.getElementById("reset-button").textContent = "😵";
+        alert("Vesztettél. Bombára kattintottál.");
+        return;
+    } else {
+        cell.textContent = board[x][y] || "";
+        if (board[x][y] > 0) {
+            cell.classList.add(`number-${board[x][y]}`);
+        }
+
+        if (board[x][y] === 0) {
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    let nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && ny >= 0 && nx < size && ny < size) {
+                        let neighborCell = document.querySelector(`.cell[data-x="${nx}"][data-y="${ny}"]`);
+                        if (neighborCell && !neighborCell.classList.contains("revealed")) {
+                            revealCell({ target: neighborCell });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    checkWin();
+}
+
+
+        function revealAllMines() {
+            document.querySelectorAll(".cell").forEach(cell => {
+                let x = parseInt(cell.dataset.x);
+                let y = parseInt(cell.dataset.y);
+                if (board[x][y] === "M") {
+                    cell.classList.add("mine");
+                    cell.textContent = "💣";
+                }
+            });
+        }
+
+        function toggleFlag(event) {
+            event.preventDefault();
+            if (gameOver) return;
+
+            let cell = event.target;
+            if (cell.classList.contains("revealed")) return;
+
+            if (cell.classList.contains("flagged")) {
+                cell.classList.remove("flagged");
+                cell.textContent = "";
+                remainingFlags++;
+            } else if (remainingFlags > 0) {
+                cell.classList.add("flagged");
+                cell.textContent = "🚩";
+                remainingFlags--;
+            }
+
+            document.getElementById("mine-counter").textContent = remainingFlags.toString().padStart(3, '0');
+        }
+
+        function startTimer() {
+            interval = setInterval(() => {
+                timer++;
+                document.getElementById("timer").textContent = timer.toString().padStart(3, '0');
+            }, 1000);
+        }
+
+        document.getElementById("reset-button").addEventListener("click", startGame);
+        document.getElementById("board-size").addEventListener("change", function() {
+            size = parseInt(this.value);
+            setMines(); // Frissítjük a bányák számát a méretváltoztatáskor
+            startGame();
+        });
+
+        startGame();
+    </script>
+</body>
+</html>
