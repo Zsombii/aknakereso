@@ -84,45 +84,45 @@
             font-size: 17px;
         }
         .dropdown-container {
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-}
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
 
-select {
-    padding: 8px 12px;
-    font-size: 16px;
-    font-weight: bold;
-    border: 2px solid #808080;
-    background-color: #DCDCDC;
-    box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
-    cursor: pointer;
-    border-radius: 5px;
-    outline: none;
-    transition: all 0.3s ease-in-out;
-}
+        select {
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #808080;
+            background-color: #DCDCDC;
+            box-shadow: inset -2px -2px #fff, inset 2px 2px #808080;
+            cursor: pointer;
+            border-radius: 5px;
+            outline: none;
+            transition: all 0.3s ease-in-out;
+        }
 
-select:hover {
-    background-color: #C0C0C0;
-}
+        select:hover {
+            background-color: #C0C0C0;
+        }
 
-select:focus {
-    border-color: #555;
-    background-color: #B0B0B0;
-}
+        select:focus {
+            border-color: #555;
+            background-color: #B0B0B0;
+        }
 
-.number-1 { color: blue; }
-.number-2 { color: green; }
-.number-3 { color: red; }
-.number-4 { color: navy; }
-.number-5 { color: brown; }
-.number-6 { color: teal; }
-.number-7 { color: black; }
-.number-8 { color: gray; }
+        .number-1 { color: blue; }
+        .number-2 { color: green; }
+        .number-3 { color: red; }
+        .number-4 { color: navy; }
+        .number-5 { color: brown; }
+        .number-6 { color: teal; }
+        .number-7 { color: black; }
+        .number-8 { color: gray; }
 
     </style>
 </head>
@@ -148,8 +148,8 @@ select:focus {
     </div>
     
     <script>
-        let size = 10; // Alapértelmezett méret
-        let mines = 15; // Alapértelmezett bányák száma
+        let size = 10;
+        let mines = 15;
         let board = [];
         let timer = 0;
         let interval;
@@ -158,9 +158,8 @@ select:focus {
         let firstClick = true;
 
         function setMines() {
-            // A bányák számának beállítása a tábla mérete alapján
-            mines = Math.floor(size * size * 0.15); // 15% a bányák aránya a mezők számához képest
-            remainingFlags = mines; // Frissítjük a maradék zászlók számát
+            mines = Math.floor(size * size * 0.15);
+            remainingFlags = mines;
         }
 
         function startGame() {
@@ -168,7 +167,7 @@ select:focus {
             timer = 0;
             gameOver = false;
             firstClick = true;
-            setMines(); // Beállítjuk a bányák számát
+            setMines();
             document.getElementById("timer").textContent = "000";
             document.getElementById("mine-counter").textContent = remainingFlags.toString().padStart(3, '0');
             document.getElementById("reset-button").textContent = "😊";
@@ -331,7 +330,7 @@ select:focus {
         document.getElementById("reset-button").addEventListener("click", startGame);
         document.getElementById("board-size").addEventListener("change", function() {
             size = parseInt(this.value);
-            setMines(); // Frissítjük a bányák számát a méretváltoztatáskor
+            setMines();
             startGame();
         });
 
