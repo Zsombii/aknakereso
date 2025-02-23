@@ -124,11 +124,18 @@
         .number-7 { color: black; }
         .number-8 { color: gray; }
 
+        .besttime{
+            font-weight: bold;
+            color: black;
+            margin-bottom: 15px;
+        }
+
     </style>
 </head>
 <body>
     <div class="dropdown-container" style="margin-bottom: 10px;">
         <h1>Aknakereső</h1>
+        <div class="besttime" id="best-time">Legjobb idő: -</div>
         <label for="board-size">Tábla mérete:</label>
         <select id="board-size">
             <option value="6">6x6</option>
@@ -233,8 +240,22 @@
                 clearInterval(interval);
                 gameOver = true;
                 document.getElementById("reset-button").textContent = "😎";
-                alert(`Gratulálok, nyertél! 🎉 Idő: ${timer} másodperc`);
+                let bestTimeKey = `bestTime_${size}x${size}`;
+                let bestTime = localStorage.getItem(bestTimeKey);
+                if (!bestTime || timer < parseInt(bestTime)) {
+                    localStorage.setItem(bestTimeKey, timer);
+                } else {
+                    alert(`Gratulálok, nyertél! 🎉 Idő: ${timer} másodperc`);
+                }
+                updateBestTimeDisplay();
             }
+        }
+
+        function updateBestTimeDisplay() {
+            let bestTimeKey = `bestTime_${size}x${size}`;
+            let bestTime = localStorage.getItem(bestTimeKey);
+            document.getElementById("best-time").textContent = 
+                bestTime ? `Legjobb idő: ${bestTime} másodperc` : "Legjobb idő: -";
         }
 
         function revealCell(event) {
@@ -288,7 +309,6 @@
     checkWin();
 }
 
-
         function revealAllMines() {
             document.querySelectorAll(".cell").forEach(cell => {
                 let x = parseInt(cell.dataset.x);
@@ -332,9 +352,11 @@
             size = parseInt(this.value);
             setMines();
             startGame();
+            updateBestTimeDisplay();
         });
 
         startGame();
+        updateBestTimeDisplay();
     </script>
 </body>
 </html>
